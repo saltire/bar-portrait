@@ -1,3 +1,5 @@
+'use strict';
+
 var rows = 20;
 var columns = 20;
 var curviness = 0.5;
@@ -44,12 +46,8 @@ image.onload = function () {
 
             if (x === 0) {
                 ctx.lineTo(x, height);
-            }
-            else {
-                ctx.bezierCurveTo(
-                    x - xSpacing + cpLength, lastHeight,
-                    x - cpLength, height,
-                    x, height);
+            } else {
+                ctx.bezierCurveTo(x - xSpacing + cpLength, lastHeight, x - cpLength, height, x, height);
             }
 
             if (x === canvas.width - 1) {

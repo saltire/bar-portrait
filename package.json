@@ -1,0 +1,23 @@
+{
+  "name": "bar-portrait",
+  "version": "0.0.0",
+  "description": "A quick art project.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saltire/bar-portrait.git"
+  },
+  "author": "x@saltiresable.com",
+  "license": "ISC",
+  "homepage": "https://github.com/saltire/bar-portrait#readme",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "bootstrap": "^3.3.7",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-connect": "^5.0.0",
+    "gulp-run": "^1.7.1",
+    "react": "^15.3.1",
+    "react-dom": "^15.3.1"
+  }
+}
