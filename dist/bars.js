@@ -29,6 +29,7 @@ BarPortrait.prototype.setImage = function (imagePath) {
         var ratio = Math.min(_this.canvas.width / image.width, _this.canvas.height / image.height);
         _this.imgCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
         _this.imgCtx.drawImage(image, 0, 0);
+        _this.data = _this.imgCtx.getImageData(0, 0, _this.canvas.width, _this.canvas.height).data;
 
         _this.draw();
     };
@@ -58,8 +59,6 @@ BarPortrait.prototype.draw = function () {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = 'black';
 
-    var data = this.imgCtx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-
     var xSpacing = (this.canvas.width - 1) / (this.columns + 1);
     var ySpacing = (this.canvas.height - 1) / this.rows;
     var cpLength = this.curviness * xSpacing;
@@ -74,13 +73,9 @@ BarPortrait.prototype.draw = function () {
 
         var x = void 0;
         for (x = 0; x <= this.canvas.width; x += xSpacing) {
-            var p = (Math.round(y + ySpacing / 2) * this.canvas.width + Math.round(x)) * 4;
-            var r = data[p];
-            var g = data[p + 1];
-            var b = data[p + 2];
-            var v = (r + r + g + g + g + b) / 6;
+            var value = this.getAverageValue(Math.max(0, Math.ceil(x - xSpacing / 2)), Math.max(0, Math.ceil(y)), Math.min(this.canvas.height - 1, Math.floor(x + xSpacing / 2)), Math.min(this.canvas.width - 1, Math.floor(y + ySpacing - 1)));
 
-            var height = baseline - (255 - v) / 255 * maxHeight;
+            var height = baseline - (255 - value) / 255 * maxHeight;
 
             if (x === 0) {
                 this.ctx.lineTo(x, height);
@@ -95,4 +90,24 @@ BarPortrait.prototype.draw = function () {
         this.ctx.closePath();
         this.ctx.fill();
     }
+};
+
+BarPortrait.prototype.getAverageValue = function (left, top, right, bottom) {
+    var values = [];
+
+    var width = right - left + 1;
+    var height = bottom - top + 1;
+    for (var y = top; y <= bottom; y++) {
+        for (var x = left; x <= right; x++) {
+            var p = (y * this.canvas.width + x) * 4;
+            var r = this.data[p];
+            var g = this.data[p + 1];
+            var b = this.data[p + 2];
+            values.push((r + r + g + g + g + b) / 6);
+        }
+    }
+
+    return values.reduce(function (sum, val) {
+        return sum + val;
+    }) / values.length;
 };
