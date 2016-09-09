@@ -12,10 +12,10 @@ var BarPortrait = function BarPortrait(canvasId, imagePath, rows, columns, curvi
     this.imgCtx = this.imgCanvas.getContext('2d');
 
     // Initialize variables.
-    this.rows = rows;
-    this.columns = columns;
-    this.curviness = curviness;
-    this.barHeight = barHeight;
+    this.rows = Number(rows);
+    this.columns = Number(columns);
+    this.curviness = Number(curviness);
+    this.barHeight = Number(barHeight);
 
     this.setImage(imagePath);
 };
@@ -34,12 +34,33 @@ BarPortrait.prototype.setImage = function (imagePath) {
     };
 };
 
+BarPortrait.prototype.setRows = function (rows) {
+    this.rows = Number(rows);
+    this.draw();
+};
+
+BarPortrait.prototype.setColumns = function (columns) {
+    this.columns = Number(columns);
+    this.draw();
+};
+
+BarPortrait.prototype.setCurviness = function (curviness) {
+    this.curviness = Number(curviness);
+    this.draw();
+};
+
+BarPortrait.prototype.setBarHeight = function (barHeight) {
+    this.barHeight = Number(barHeight);
+    this.draw();
+};
+
 BarPortrait.prototype.draw = function () {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = 'black';
 
     var data = this.imgCtx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
 
-    var xSpacing = (this.canvas.width - 1) / this.columns;
+    var xSpacing = (this.canvas.width - 1) / (this.columns + 1);
     var ySpacing = (this.canvas.height - 1) / this.rows;
     var cpLength = this.curviness * xSpacing;
     var maxHeight = this.barHeight * ySpacing;
@@ -51,7 +72,8 @@ BarPortrait.prototype.draw = function () {
         this.ctx.beginPath();
         this.ctx.moveTo(0, baseline);
 
-        for (var x = 0; x <= this.canvas.width; x += xSpacing) {
+        var x = void 0;
+        for (x = 0; x <= this.canvas.width; x += xSpacing) {
             var p = (Math.round(y + ySpacing / 2) * this.canvas.width + Math.round(x)) * 4;
             var r = data[p];
             var g = data[p + 1];
@@ -66,16 +88,11 @@ BarPortrait.prototype.draw = function () {
                 this.ctx.bezierCurveTo(x - xSpacing + cpLength, lastHeight, x - cpLength, height, x, height);
             }
 
-            if (x === canvas.width - 1) {
-                this.ctx.lineTo(x, baseline);
-            }
-
             lastHeight = height;
         }
 
+        this.ctx.lineTo(x, baseline);
         this.ctx.closePath();
         this.ctx.fill();
     }
 };
-
-new BarPortrait('canvas', 'cube.png', 20, 20, 0.5, 0.8);
