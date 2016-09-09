@@ -1,42 +1,58 @@
 'use strict';
 
-var rows = 20;
-var columns = 20;
-var curviness = 0.5;
-var barHeight = 0.8;
+var BarPortrait = function BarPortrait(canvasId, imagePath, rows, columns, curviness, barHeight) {
+    // Create main canvas.
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
 
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+    // Create image canvas.
+    this.imgCanvas = document.createElement('canvas');
+    this.imgCanvas.width = this.canvas.width;
+    this.imgCanvas.height = this.canvas.height;
+    this.imgCtx = this.imgCanvas.getContext('2d');
 
-ctx.fillStyle = 'black';
+    // Initialize variables.
+    this.rows = rows;
+    this.columns = columns;
+    this.curviness = curviness;
+    this.barHeight = barHeight;
 
-var image = new Image();
-image.src = './cube.png';
-image.onload = function () {
-    var imgCanvas = document.createElement('canvas');
-    imgCanvas.width = canvas.width;
-    imgCanvas.height = canvas.height;
-    var imgCtx = imgCanvas.getContext('2d');
-    var ratio = Math.min(canvas.width / image.width, canvas.height / image.height);
-    imgCtx.scale(ratio, ratio);
-    imgCtx.drawImage(image, 0, 0);
+    this.setImage(imagePath);
+};
 
-    var data = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+BarPortrait.prototype.setImage = function (imagePath) {
+    var _this = this;
 
-    var xSpacing = (canvas.width - 1) / columns;
-    var ySpacing = (canvas.height - 1) / rows;
-    var cpLength = curviness * xSpacing;
-    var maxHeight = barHeight * ySpacing;
+    var image = new Image();
+    image.src = imagePath;
+    image.onload = function () {
+        var ratio = Math.min(_this.canvas.width / image.width, _this.canvas.height / image.height);
+        _this.imgCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        _this.imgCtx.drawImage(image, 0, 0);
+
+        _this.draw();
+    };
+};
+
+BarPortrait.prototype.draw = function () {
+    this.ctx.fillStyle = 'black';
+
+    var data = this.imgCtx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+
+    var xSpacing = (this.canvas.width - 1) / this.columns;
+    var ySpacing = (this.canvas.height - 1) / this.rows;
+    var cpLength = this.curviness * xSpacing;
+    var maxHeight = this.barHeight * ySpacing;
 
     for (var y = 0; y < canvas.height; y += ySpacing) {
         var baseline = y + ySpacing - 1;
         var lastHeight = baseline;
 
-        ctx.beginPath();
-        ctx.moveTo(0, baseline);
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, baseline);
 
-        for (var x = 0; x <= canvas.width; x += xSpacing) {
-            var p = (Math.round(y + ySpacing / 2) * canvas.width + Math.round(x)) * 4;
+        for (var x = 0; x <= this.canvas.width; x += xSpacing) {
+            var p = (Math.round(y + ySpacing / 2) * this.canvas.width + Math.round(x)) * 4;
             var r = data[p];
             var g = data[p + 1];
             var b = data[p + 2];
@@ -45,19 +61,21 @@ image.onload = function () {
             var height = baseline - (255 - v) / 255 * maxHeight;
 
             if (x === 0) {
-                ctx.lineTo(x, height);
+                this.ctx.lineTo(x, height);
             } else {
-                ctx.bezierCurveTo(x - xSpacing + cpLength, lastHeight, x - cpLength, height, x, height);
+                this.ctx.bezierCurveTo(x - xSpacing + cpLength, lastHeight, x - cpLength, height, x, height);
             }
 
             if (x === canvas.width - 1) {
-                ctx.lineTo(x, baseline);
+                this.ctx.lineTo(x, baseline);
             }
 
             lastHeight = height;
         }
 
-        ctx.closePath();
-        ctx.fill();
+        this.ctx.closePath();
+        this.ctx.fill();
     }
 };
+
+new BarPortrait('canvas', 'cube.png', 20, 20, 0.5, 0.8);
