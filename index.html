@@ -1,11 +1,22 @@
 <!doctype html>
 <html>
     <head>
-        <title>Bar portrait</title>
+        <title>Bar Portrait</title>
+        <meta charset='utf-8'>
+        <link rel='stylesheet' href='./bootstrap.min.css'>
+        <link rel='stylesheet' href='./style.css'>
+        <script src='./react.js'></script>
+        <script src='./react-dom.js'></script>
     </head>
     <body>
-        <img src='./cube.png' width='601' height='601'>
-        <canvas id='canvas' width='601' height='601'></canvas>
+        <div class='images container-fluid'>
+            <img src='./cube.png' width='500' height='500'>
+            <canvas id='canvas' width='500' height='500'></canvas>
+        </div>
+        <div class='container'>
+            <div id='control-form'></div>
+        </div>
         <script src='./bars.js'></script>
+        <script src='./form.js'></script>
     </body>
 </html>

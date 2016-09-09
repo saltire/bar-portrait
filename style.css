@@ -1,0 +1,17 @@
+.images {
+    text-align: center;
+}
+
+img, canvas {
+    vertical-align: middle;
+}
+
+form {
+    padding: 20px;
+}
+
+.form-control,
+.form-control:focus {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
