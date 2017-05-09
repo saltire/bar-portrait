@@ -12,6 +12,12 @@ form {
 
 .form-control,
 .form-control:focus {
+    padding: 0;
+    border: none;
     box-shadow: none;
     -webkit-box-shadow: none;
+}
+
+input[type=file] {
+    display: none;
 }
