@@ -41,6 +41,21 @@ const ControlForm = React.createClass({
         this.bars.setBarHeight(event.target.value);
     },
 
+    getImageFile(event) {
+        event.preventDefault();
+        this.fileInput.click();
+    },
+
+    updateImageFile(event) {
+        if (event.target.files && event.target.files.length) {
+            this.setState({
+                imageFile: event.target.files[0]
+            });
+
+            this.bars.setImageFromFile(event.target.files[0]);
+        }
+    },
+
     render() {
         return (
             <form className='form-horizontal'>
@@ -80,12 +95,22 @@ const ControlForm = React.createClass({
                         <p className='form-control-static'>{this.state.barHeight}</p>
                     </div>
                 </div>
+                <div className='form-group'>
+                    <label className='col-sm-2 control-label' htmlFor='imageFile'>Image file</label>
+                    <div className='col-sm-1'>
+                        <input type='file' ref={input => { this.fileInput = input; }} accept='image/*' onChange={this.updateImageFile} />
+                        <button className='btn btn-default' onClick={this.getImageFile}>Browse</button>
+                    </div>
+                    <div className='col-sm-7'>
+                        <p className='form-control-static'>{this.state.imageFile && this.state.imageFile.name}</p>
+                    </div>
+                </div>
             </form>
         );
     },
 
     componentDidMount() {
-        this.bars = new BarPortrait('canvas', this.state.image, this.state.rows, this.state.columns, this.state.curviness, this.state.barHeight);
+        this.bars = new BarPortrait('image', 'canvas', 500, this.state.image, this.state.rows, this.state.columns, this.state.curviness, this.state.barHeight);
     }
 });
 

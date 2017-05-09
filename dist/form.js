@@ -39,7 +39,22 @@ var ControlForm = React.createClass({
 
         this.bars.setBarHeight(event.target.value);
     },
+    getImageFile: function getImageFile(event) {
+        event.preventDefault();
+        this.fileInput.click();
+    },
+    updateImageFile: function updateImageFile(event) {
+        if (event.target.files && event.target.files.length) {
+            this.setState({
+                imageFile: event.target.files[0]
+            });
+
+            this.bars.setImageFromFile(event.target.files[0]);
+        }
+    },
     render: function render() {
+        var _this = this;
+
         return React.createElement(
             'form',
             { className: 'form-horizontal' },
@@ -134,11 +149,41 @@ var ControlForm = React.createClass({
                         this.state.barHeight
                     )
                 )
+            ),
+            React.createElement(
+                'div',
+                { className: 'form-group' },
+                React.createElement(
+                    'label',
+                    { className: 'col-sm-2 control-label', htmlFor: 'imageFile' },
+                    'Image file'
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-sm-1' },
+                    React.createElement('input', { type: 'file', ref: function ref(input) {
+                            _this.fileInput = input;
+                        }, accept: 'image/*', onChange: this.updateImageFile }),
+                    React.createElement(
+                        'button',
+                        { className: 'btn btn-default', onClick: this.getImageFile },
+                        'Browse'
+                    )
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-sm-7' },
+                    React.createElement(
+                        'p',
+                        { className: 'form-control-static' },
+                        this.state.imageFile && this.state.imageFile.name
+                    )
+                )
             )
         );
     },
     componentDidMount: function componentDidMount() {
-        this.bars = new BarPortrait('canvas', this.state.image, this.state.rows, this.state.columns, this.state.curviness, this.state.barHeight);
+        this.bars = new BarPortrait('image', 'canvas', 500, this.state.image, this.state.rows, this.state.columns, this.state.curviness, this.state.barHeight);
     }
 });
 

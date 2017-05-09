@@ -1,16 +1,18 @@
 class BarPortrait {
-    constructor(canvasId, imagePath, rows, columns, curviness, barHeight) {
+    constructor(imageId, canvasId, maxSize, imagePath, rows, columns, curviness, barHeight) {
+        // Get reference to original image.
+        this.image = document.getElementById(imageId);
+
         // Create main canvas.
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
 
         // Create image canvas.
         this.imgCanvas = document.createElement('canvas');
-        this.imgCanvas.width = this.canvas.width;
-        this.imgCanvas.height = this.canvas.height;
         this.imgCtx = this.imgCanvas.getContext('2d');
 
         // Initialize variables.
+        this.maxSize = Number(maxSize);
         this.rows = Number(rows);
         this.columns = Number(columns);
         this.curviness = Number(curviness);
@@ -23,13 +25,31 @@ class BarPortrait {
         const image = new Image();
         image.src = imagePath;
         image.onload = () => {
-            const ratio = Math.min(this.canvas.width / image.width, this.canvas.height / image.height);
+            this.image.src = imagePath;
+            const maxWidth = Math.min(image.width, this.maxSize);
+            const maxHeight = Math.min(image.height, this.maxSize);
+            const ratio = Math.min(maxHeight / image.height, maxWidth / image.width);
+
+            const width = Math.floor(image.width * ratio);
+            const height = Math.floor(image.height * ratio);
+
+            this.canvas.width = this.imgCanvas.width = this.image.width = width;
+            this.canvas.height = this.imgCanvas.height = this.image.height = height;
+
             this.imgCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
             this.imgCtx.drawImage(image, 0, 0);
-            this.data = this.imgCtx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+            this.data = this.imgCtx.getImageData(0, 0, width, height).data;
 
             this.draw();
         };
+    }
+
+    setImageFromFile(file) {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            this.setImage(reader.result);
+        });
+        reader.readAsDataURL(file);
     }
 
     setRows(rows) {
@@ -61,7 +81,7 @@ class BarPortrait {
         const cpLength = this.curviness * xSpacing;
         const maxHeight = this.barHeight * ySpacing;
 
-        for (let y = 0; y < canvas.height; y += ySpacing) {
+        for (let y = 0; y < this.canvas.height; y += ySpacing) {
             const baseline = y + ySpacing - 1;
             let lastHeight = baseline;
 
@@ -71,10 +91,10 @@ class BarPortrait {
             let x;
             for (x = 0; x <= this.canvas.width; x += xSpacing) {
                 const value = this.getAverageValue(
-                    Math.max(0, Math.ceil(x - xSpacing / 2)),
-                    Math.max(0, Math.ceil(y)),
-                    Math.min(this.canvas.height - 1, Math.floor(x + xSpacing / 2)),
-                    Math.min(this.canvas.width - 1, Math.floor(y + ySpacing - 1))
+                    Math.max(0, Math.round(x - xSpacing / 2)),
+                    Math.min(this.canvas.width - 1, Math.round(x + xSpacing / 2)),
+                    Math.max(0, Math.round(y)),
+                    Math.min(this.canvas.height - 1, Math.round(y + ySpacing - 1))
                 );
 
                 const height = baseline - (255 - value) / 255 * maxHeight;
@@ -98,11 +118,9 @@ class BarPortrait {
         }
     }
 
-    getAverageValue(left, top, right, bottom) {
+    getAverageValue(left, right, top, bottom) {
         const values = [];
 
-        const width = right - left + 1;
-        const height = bottom - top + 1;
         for (let y = top; y <= bottom; y++) {
             for (let x = left; x <= right; x++) {
                 const p = (y * this.canvas.width + x) * 4;

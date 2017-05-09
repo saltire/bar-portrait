@@ -5,8 +5,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var BarPortrait = function () {
-    function BarPortrait(canvasId, imagePath, rows, columns, curviness, barHeight) {
+    function BarPortrait(imageId, canvasId, maxSize, imagePath, rows, columns, curviness, barHeight) {
         _classCallCheck(this, BarPortrait);
+
+        // Get reference to original image.
+        this.image = document.getElementById(imageId);
 
         // Create main canvas.
         this.canvas = document.getElementById(canvasId);
@@ -14,11 +17,10 @@ var BarPortrait = function () {
 
         // Create image canvas.
         this.imgCanvas = document.createElement('canvas');
-        this.imgCanvas.width = this.canvas.width;
-        this.imgCanvas.height = this.canvas.height;
         this.imgCtx = this.imgCanvas.getContext('2d');
 
         // Initialize variables.
+        this.maxSize = Number(maxSize);
         this.rows = Number(rows);
         this.columns = Number(columns);
         this.curviness = Number(curviness);
@@ -35,13 +37,34 @@ var BarPortrait = function () {
             var image = new Image();
             image.src = imagePath;
             image.onload = function () {
-                var ratio = Math.min(_this.canvas.width / image.width, _this.canvas.height / image.height);
+                _this.image.src = imagePath;
+                var maxWidth = Math.min(image.width, _this.maxSize);
+                var maxHeight = Math.min(image.height, _this.maxSize);
+                var ratio = Math.min(maxHeight / image.height, maxWidth / image.width);
+
+                var width = Math.floor(image.width * ratio);
+                var height = Math.floor(image.height * ratio);
+
+                _this.canvas.width = _this.imgCanvas.width = _this.image.width = width;
+                _this.canvas.height = _this.imgCanvas.height = _this.image.height = height;
+
                 _this.imgCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
                 _this.imgCtx.drawImage(image, 0, 0);
-                _this.data = _this.imgCtx.getImageData(0, 0, _this.canvas.width, _this.canvas.height).data;
+                _this.data = _this.imgCtx.getImageData(0, 0, width, height).data;
 
                 _this.draw();
             };
+        }
+    }, {
+        key: 'setImageFromFile',
+        value: function setImageFromFile(file) {
+            var _this2 = this;
+
+            var reader = new FileReader();
+            reader.addEventListener('load', function () {
+                _this2.setImage(reader.result);
+            });
+            reader.readAsDataURL(file);
         }
     }, {
         key: 'setRows',
@@ -78,7 +101,7 @@ var BarPortrait = function () {
             var cpLength = this.curviness * xSpacing;
             var maxHeight = this.barHeight * ySpacing;
 
-            for (var y = 0; y < canvas.height; y += ySpacing) {
+            for (var y = 0; y < this.canvas.height; y += ySpacing) {
                 var baseline = y + ySpacing - 1;
                 var lastHeight = baseline;
 
@@ -87,7 +110,7 @@ var BarPortrait = function () {
 
                 var x = void 0;
                 for (x = 0; x <= this.canvas.width; x += xSpacing) {
-                    var value = this.getAverageValue(Math.max(0, Math.ceil(x - xSpacing / 2)), Math.max(0, Math.ceil(y)), Math.min(this.canvas.height - 1, Math.floor(x + xSpacing / 2)), Math.min(this.canvas.width - 1, Math.floor(y + ySpacing - 1)));
+                    var value = this.getAverageValue(Math.max(0, Math.round(x - xSpacing / 2)), Math.min(this.canvas.width - 1, Math.round(x + xSpacing / 2)), Math.max(0, Math.round(y)), Math.min(this.canvas.height - 1, Math.round(y + ySpacing - 1)));
 
                     var height = baseline - (255 - value) / 255 * maxHeight;
 
@@ -107,11 +130,9 @@ var BarPortrait = function () {
         }
     }, {
         key: 'getAverageValue',
-        value: function getAverageValue(left, top, right, bottom) {
+        value: function getAverageValue(left, right, top, bottom) {
             var values = [];
 
-            var width = right - left + 1;
-            var height = bottom - top + 1;
             for (var y = top; y <= bottom; y++) {
                 for (var x = left; x <= right; x++) {
                     var p = (y * this.canvas.width + x) * 4;
